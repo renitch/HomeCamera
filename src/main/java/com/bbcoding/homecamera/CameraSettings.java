@@ -18,8 +18,24 @@ public class CameraSettings {
    private String cameraStreamUrl;
    private String cameraIp;
    private String myExternalIp;
+
+   private static volatile CameraSettings instance;
    
-   public CameraSettings() {
+   public static CameraSettings getInstance() {
+      CameraSettings localInstance = instance;
+      if (localInstance == null) {
+         synchronized (CameraSettings.class) {
+            localInstance = instance;
+            if (localInstance == null) {
+               instance = localInstance = new CameraSettings();
+            }
+         }
+      }
+      
+      return localInstance;
+   }
+   
+   private CameraSettings() {
       load();
    }
    
@@ -33,12 +49,24 @@ public class CameraSettings {
       return cameraStreamUrl;
    }
 
+   public void setCameraStreamUrl(String cameraStreamUrl) {
+      this.cameraStreamUrl = cameraStreamUrl;
+   }
+
    public String getCameraIp() {
       return cameraIp;
    }
 
+   public void setCameraIp(String cameraIp) {
+      this.cameraIp = cameraIp;
+   }
+
    public String getMyExternalIp() {
       return myExternalIp;
+   }
+
+   public void setMyExternalIp(String myExternalIp) {
+      this.myExternalIp = myExternalIp;
    }
 
    private String getExternalIp() {
@@ -59,5 +87,11 @@ public class CameraSettings {
       }
       
       return "";
+   }
+
+   @Override
+   public String toString() {
+      return "CameraSettings [cameraStreamUrl=" + cameraStreamUrl + ", cameraIp=" + cameraIp + ", myExternalIp="
+            + myExternalIp + "]";
    }
 }

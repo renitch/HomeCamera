@@ -19,19 +19,22 @@ public class HomeCamera implements Observer {
    private final JFrame mainFrame = new JFrame();
    private final JLabel videoPanel = new JLabel();
 
+   private final CameraSettings cameraSettings = CameraSettings.getInstance();
+   
    private final CameraController cameraController;
    private final MotionDetector motionDetector;
    private final CameraStreamSource cameraStreamSource;
-   private CameraSettings cameraSettings;
    
    private static final String TITLE_TEMPLATE = "Home Camera %s";
    
    private HomeCamera() {
-      cameraSettings = new CameraSettings();
       motionDetector = new MotionDetector(this);
       cameraController = new CameraController(this, cameraSettings.getCameraIp());
       cameraStreamSource = new CameraStreamSource(this, cameraSettings.getCameraStreamUrl());
 
+      //Init FireBase DB
+      FireBaseDB.getInstance();
+      
       createMainFrame();
       start();
    }
