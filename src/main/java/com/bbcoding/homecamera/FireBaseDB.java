@@ -2,6 +2,7 @@ package com.bbcoding.homecamera;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -91,7 +92,11 @@ public class FireBaseDB {
             Object allTokensObject = dataSnapshot.getValue();
             logger.info("All tokens data changed: " + allTokensObject);
             if (allTokensObject instanceof List) {
-               allTokens = (List)allTokensObject;
+               allTokens.addAll((List)allTokensObject);
+               // Remove duplicates
+               allTokens = allTokens.stream()
+                     .distinct()
+                     .collect(Collectors.toList());
                logger.info("allTokens variable is now set to: " + allTokens);
             }
             if (allTokensObject == null) {
