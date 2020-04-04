@@ -1,15 +1,11 @@
 package com.bbcoding.homecamera;
 
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import com.google.firebase.FirebaseApp;
-import com.google.firebase.FirebaseOptions;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -18,11 +14,8 @@ import com.google.firebase.database.ValueEventListener;
 
 public class FireBaseDB {
 
-   final static Logger logger = Logger.getLogger(FireBaseDB.class);
+   private final static Logger logger = LogManager.getLogger(FireBaseDB.class);
    
-   private static final String DATABASE_URL = "https://homecam-12bdc.firebaseio.com";
-   private String keyFilePath = "C:/myFirebaseKeys/homecam-12bdc-firebase-adminsdk-xnd69-9cf0ebabc9.json";
-
    private static final String SETTINGS_KEY = "settings";
    private static final String NEW_TOKEN_KEY = "newToken";
    private static final String ALL_TOKENS_KEY = "allTokens";
@@ -31,7 +24,7 @@ public class FireBaseDB {
    
    private String newToken;
    private List<String> allTokens = new ArrayList<>();
-   
+
    public static FireBaseDB getInstance() {
       FireBaseDB localInstance = instance;
       if (localInstance == null) {
@@ -45,22 +38,10 @@ public class FireBaseDB {
       
       return localInstance;
    }
-   
+
    private FireBaseDB() {
-      init();
-   }
-   
-   private void init() {
-      try (FileInputStream serviceAccount = new FileInputStream(keyFilePath)) {
-          FirebaseOptions options = new FirebaseOptions.Builder()
-             .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-             .setDatabaseUrl(DATABASE_URL)
-             .build();
-         FirebaseApp.initializeApp(options);
-         
+      if (FireBaseInitializer.getInstance() != null) {
          createDataListeners();
-      } catch (IOException e) {
-         logger.error("Cannot connect to FIreBase DB.", e);
       }
    }
    
@@ -123,5 +104,9 @@ public class FireBaseDB {
          public void onCancelled(DatabaseError error) {
          }
       });
+   }
+
+   public static List<String> getAllTokens() {
+      return getInstance().allTokens;
    }
 }

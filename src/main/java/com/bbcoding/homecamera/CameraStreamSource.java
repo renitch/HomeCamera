@@ -5,7 +5,8 @@ import java.awt.image.BufferedImage;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import uk.co.caprica.vlcj.discovery.NativeDiscovery;
 import uk.co.caprica.vlcj.player.MediaPlayerFactory;
@@ -21,7 +22,7 @@ public class CameraStreamSource extends Observable {
       new NativeDiscovery().discover();
    }
 
-   final static Logger logger = Logger.getLogger(CameraStreamSource.class);
+   private final static Logger logger = LogManager.getLogger(CameraStreamSource.class);
    
    private final int width = 720;
    private final int height = 480;
@@ -50,6 +51,13 @@ public class CameraStreamSource extends Observable {
 
    public void stop() {
       logger.info("Stopping player...");
+      if (mediaPlayer != null) {
+         mediaPlayer.stop();
+      }
+   }
+
+   public void release() {
+      logger.info("Releasing player resources...");
       if (mediaPlayer != null) {
          mediaPlayer.stop();
          mediaPlayer.release();

@@ -34,7 +34,7 @@ import org.opencv.objdetect.HOGDescriptor;
 public class MotionDetector extends Observable {
 
    static {
-      nu.pattern.OpenCV.loadLocally();//.loadShared();
+      nu.pattern.OpenCV.loadShared();
    }
   
    private static final HOGDescriptor HOG = new HOGDescriptor();
@@ -67,7 +67,7 @@ public class MotionDetector extends Observable {
 
    private boolean shouldInitFrames = true;
    
-   private AlarmDetected alarm;
+   private AlertInfo alertInfo;
 
    public MotionDetector(Observer observer) {
       addObserver(observer);
@@ -75,15 +75,15 @@ public class MotionDetector extends Observable {
    }
    
    public BufferedImage processImage(BufferedImage bufferedImage) {
-      alarm = new AlarmDetected();
+      alertInfo = new AlertInfo();
       
       setBufferedImage(bufferedImage);
       processOpenCV();
       processHumanDetection();
       
-      if (alarm.alarmDetected()) {
+      if (alertInfo.alarmDetected()) {
          setChanged();
-         notifyObservers(alarm);
+         notifyObservers(alertInfo);
       }
       
       return buildBufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), bufferedImage.getType());
@@ -111,12 +111,13 @@ public class MotionDetector extends Observable {
          Imgproc.threshold(diffFrame, diffFrame, sensitivity, 255, Imgproc.THRESH_BINARY);
          ArrayList<Rect> array = detectContours(diffFrame);
          if (array.size() > 0) {
-            alarm.setMotionDetected();
             Iterator<Rect> it = array.iterator();
             while (it.hasNext()) {
                Rect obj = it.next();
                Imgproc.rectangle(finalImage, obj.br(), obj.tl(), motionRectangleColor, 1);
             }
+            alertInfo.setMotionDetected();
+            alertInfo.setEncodedImage(matToBytes(finalImage));
          }
       }
 
@@ -172,7 +173,6 @@ public class MotionDetector extends Observable {
       HOG.detectMultiScale(frame, foundPersons, foundWeights, 0.0, winStride, padding, 1.05, 1.5, false);
 
       if (foundPersons.rows() > 0) {
-         alarm.setHumanDetected();
          List<Rect> rectList = foundPersons.toList();
 
          for (Rect rect : rectList) {
@@ -184,43 +184,17 @@ public class MotionDetector extends Observable {
             // Draw rectangle around fond object
             Imgproc.rectangle(finalImage, rectPoint1, rectPoint2, humanDetectedColor, 2);
          }
+         alertInfo.setHumanDetected();
+         alertInfo.setEncodedImage(matToBytes(finalImage));
       }
    }
 
-   public static class AlarmDetected {
-      private boolean motionDetected = false;
-      private boolean humanDetected  = false;
-
-      public AlarmDetected() {
-         
-      }
-
-      public boolean isMotionDetected() {
-         return motionDetected;
-      }
-
-      public void setMotionDetected() {
-         motionDetected = true;
-      }
-
-      public boolean isHumanDetected() {
-         return humanDetected;
-      }
-
-      public void setHumanDetected() {
-         humanDetected = true;
-      };
-      
-      public boolean alarmDetected() {
-         return motionDetected || humanDetected;
-      }
-
-      @Override
-      public String toString() {
-         return "AlarmDetected [motionDetected=" + motionDetected + ", humanDetected=" + humanDetected + "]";
-      }
+   private byte [] matToBytes(Mat image) {
+      final MatOfByte bytemat = new MatOfByte();
+      Imgcodecs.imencode(".jpg", image, bytemat);
+      return bytemat.toArray();
    }
-
+   
    public static Mat bufferedImageToMat(BufferedImage bufferedImage) {
       if (bufferedImage != null) {
          try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {

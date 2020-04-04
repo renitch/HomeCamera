@@ -6,11 +6,12 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CameraSettings {
    
-   final static Logger logger = Logger.getLogger(CameraSettings.class);
+   private final static Logger logger = LogManager.getLogger(CameraSettings.class);
    
    private static final String IP_EXTRACTION_REGEX = "^.*[^0-9](([0-9]{1,3}[\\.]){3}[0-9]{1,3}).*$";
    private static final String EXTERNAL_IP_CHECK_HOST= "http://checkip.amazonaws.com";

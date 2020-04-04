@@ -5,11 +5,12 @@ import java.net.InetAddress;
 import java.util.Observable;
 import java.util.Observer;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class CameraController extends Observable {
 	
-   final static Logger logger = Logger.getLogger(CameraController.class);
+   private final static Logger logger = LogManager.getLogger(CameraController.class);
    
 	private volatile boolean hostReady = false;
 	private volatile boolean shouldPingHost = true;

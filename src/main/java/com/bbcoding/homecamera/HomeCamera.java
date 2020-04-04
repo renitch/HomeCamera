@@ -9,12 +9,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class HomeCamera implements Observer {
    
-   final static Logger logger = Logger.getLogger(HomeCamera.class);
+   private final static Logger logger = LogManager.getLogger(HomeCamera.class);
 
    private final JFrame mainFrame = new JFrame();
    private final JLabel videoPanel = new JLabel();
@@ -27,14 +27,16 @@ public class HomeCamera implements Observer {
    
    private static final String TITLE_TEMPLATE = "Home Camera %s";
    
+   static {
+      FireBaseInitializer.getInstance();
+      FireBaseDB.getInstance();
+   }
+   
    private HomeCamera() {
       motionDetector = new MotionDetector(this);
       cameraController = new CameraController(this, cameraSettings.getCameraIp());
       cameraStreamSource = new CameraStreamSource(this, cameraSettings.getCameraStreamUrl());
 
-      //Init FireBase DB
-      FireBaseDB.getInstance();
-      
       createMainFrame();
       start();
    }
@@ -59,6 +61,10 @@ public class HomeCamera implements Observer {
       cameraStreamSource.stop();
    } 
 
+   private void release() {
+      cameraStreamSource.release();
+   } 
+
    @Override
    public void update(Observable sender, Object parameter) {
       if (parameter instanceof BufferedImage) {
@@ -78,8 +84,9 @@ public class HomeCamera implements Observer {
          cameraStreamSource.stop();
       }
       
-      if (parameter instanceof MotionDetector.AlarmDetected) {
+      if (parameter instanceof AlertInfo) {
          logger.info(parameter);
+         AlertSendingController.pushAlert((AlertInfo)parameter);
       }
    }
 
@@ -88,6 +95,7 @@ public class HomeCamera implements Observer {
       public void windowClosing(final java.awt.event.WindowEvent e) {
           synchronized (HomeCamera.this) {
              stop();
+             release();
           }
       }
       
@@ -106,7 +114,6 @@ public class HomeCamera implements Observer {
    }
    
    public static void main(String[] args) {
-      BasicConfigurator.configure();
       SwingUtilities.invokeLater(new Runnable() {      
          public void run() {
             new HomeCamera();
