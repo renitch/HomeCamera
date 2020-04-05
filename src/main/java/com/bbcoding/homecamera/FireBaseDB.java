@@ -50,7 +50,7 @@ public class FireBaseDB {
       DatabaseReference settingsRef = FirebaseDatabase.getInstance().getReference(SETTINGS_KEY);
       DatabaseReference newTokenRef = FirebaseDatabase.getInstance().getReference(NEW_TOKEN_KEY);
       DatabaseReference allTokensRef = FirebaseDatabase.getInstance().getReference(ALL_TOKENS_KEY);
-      
+
       settingsRef.setValueAsync(CameraSettings.getInstance());
       
       settingsRef.addValueEventListener(new ValueEventListener() {
@@ -73,7 +73,6 @@ public class FireBaseDB {
                newToken = (String)newTokenObject;
                if (!newToken.isEmpty()) {
                   allTokens.add(newToken);
-                  allTokensRef.setValueAsync(allTokens);
                   newTokenRef.setValueAsync(null);
                }
             }
@@ -98,6 +97,11 @@ public class FireBaseDB {
                      .distinct()
                      .collect(Collectors.toList());
                logger.info("allTokens variable is now set to: " + allTokens);
+               
+               if (!allTokensObject.equals(allTokens)) {
+                  allTokensRef.setValueAsync(allTokens);
+                  logger.info("allTokensObject is not equal to local allTokens variable - syncing...");
+               }
             }
             if (allTokensObject == null) {
                allTokensRef.setValueAsync(allTokens);
